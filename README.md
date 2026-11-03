@@ -1,2 +1,2 @@
-# YIemn_App
-app front end for YIEMN
+# StevieAcademics_App
+app front end for YIEMN.
