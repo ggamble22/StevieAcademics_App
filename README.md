@@ -7,10 +7,11 @@ Open `index.html` in any web browser, or host this folder on any static host (Gi
 Keep the `images/` folder next to `index.html`.
 
 ## What's in it
-- Login with username and password (create an account if the username is new)
+- Login with email and password through the YIEMN auth server (create an account with a name, email, password and user type: student, parent or educator)
+- Server settings (gear icon on the login page) to set the auth server address and port, with a Test connection button
 - Five worlds: Money & My Future, Food & Opportunity, Healthy Me, My Green Community, Technology & My Future
 - Activities that earn LS Points and levels, plus a visual My Garden
-- Profile with icon, color and change password
+- Profile with icon, color and change name
 - Lil Stevie waves when tapped and opens the Stevie Academics YouTube channel
 
 ## Files
@@ -18,5 +19,6 @@ Keep the `images/` folder next to `index.html`.
 - `images/stevie-body.png`, `images/stevie-arm.png`: Lil Stevie, with the waving arm separate so only the arm moves
 
 ## Notes
-- Accounts, points and passwords are saved in each visitor's own browser only. They do not sync between devices.
+- Accounts and passwords live on the YIEMN auth server. Points, icon, color and selfie are saved in each visitor's own browser only and do not sync between devices.
+- The auth server must allow this app's origin in its `CORS_ALLOWED_ORIGINS` setting.
 - Fonts (Fredoka, Caveat) load from Google Fonts.

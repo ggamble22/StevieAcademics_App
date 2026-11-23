@@ -119,6 +119,23 @@ html.locked,html.locked body{overflow:hidden;height:100%;overscroll-behavior:non
 .login .big{margin-top:14px;width:100%;background:var(--g);color:#fff;box-shadow:0 4px 0 var(--dg)}
 .login .big:focus-visible{outline:4px solid var(--navy);outline-offset:3px}
 .login .box.asking>#newq,.login .box.asking>#who-in,.login .box.asking>.pwrow,.login .box.asking>#login-go,.login .box.asking>.guest{display:none}
+.login .big[disabled]{opacity:.6;cursor:wait}
+.login .box{position:relative}
+.gear{position:absolute;top:10px;right:10px;width:40px;height:40px;border-radius:50%;border:0;background:#0000000f;font-size:22px;line-height:1;cursor:pointer;padding:0;display:grid;place-items:center}
+.gear:focus-visible{outline:4px solid var(--g);outline-offset:2px}
+.lerr.ok{color:#1f8a3b}
+.login select{width:100%;font:600 18px Fredoka,sans-serif;padding:12px 14px;border-radius:16px;border:3px solid #cfe3d8;margin-top:14px;text-align:center;text-align-last:center;background:#fff;color:#0d2a4a}
+.login select:focus-visible{outline:4px solid var(--g);border-color:var(--g)}
+.back{display:none;position:absolute;top:10px;left:10px;height:40px;padding:0 14px;border-radius:20px;border:0;background:#0000000f;font:700 14px Fredoka,sans-serif;color:var(--navy);cursor:pointer}
+.back:focus-visible{outline:4px solid var(--g);outline-offset:2px}
+.login .box.asking>.back{display:block}
+.login .box.nolgi>.lgi{display:none}
+.login .box.nolgi>.gear,.login .box.nogear>.gear{display:none}
+.login .box.nolgi>h1{display:none}
+.login .box.nolgi>.back{left:auto;right:10px}
+.login .box.nolgi{padding-top:56px}
+.pgl{font-weight:700;font-size:18px;color:var(--g);margin-top:2px}
+.login .hint{color:#4a5f7a;margin-top:6px}
 .login .box{max-height:none;overflow:visible;transform-origin:50% 50%}
 .login .pick{font-weight:600;margin-top:10px}
 .acct{display:flex;align-items:center;gap:10px;width:100%;margin-top:8px;padding:10px 12px;border-radius:16px;border:3px solid #cfe3d8;background:#f3faf5;color:#0d2a4a;font:600 18px Fredoka,sans-serif;cursor:pointer;text-align:left}
@@ -173,7 +190,7 @@ html.locked,html.locked body{overflow:hidden;height:100%;overscroll-behavior:non
 <div class="sheet" id="sheet" role="dialog" aria-modal="true"><div class="panel" id="panel"></div></div>
 <div class="cam" id="cam" role="dialog" aria-modal="true" aria-label="Camera"><p>Smile! 😄 Line up your face in the circle.</p><video id="vid" autoplay playsinline muted></video><div class="row"><button class="big" id="shot">📸 Take picture</button><button class="big alt" id="cancel" style="color:#fff">Cancel</button></div></div>
 <div class="toast" id="toast"></div>
-<div class="login" id="login" role="dialog" aria-modal="true" aria-label="Log in"><div class="box"><button class="lgi" id="lgi" aria-label="My profile">🧢</button><h1>Welcome, Explorer!</h1><div id="accts"></div><p id="newq">Log in with your username and password</p><input id="who-in" maxlength="20" placeholder="Username" aria-label="Username" autocomplete="off"><div class="pwrow"><input id="pw-in" type="password" maxlength="40" placeholder="Password" autocomplete="off" aria-label="Password"><button class="showpw" type="button" data-show="pw-in">Show</button></div><div class="lerr" id="lerr" role="alert"></div><button class="big" id="login-go">Let's Go! 🚀</button><button class="guest" id="login-guest">Continue as Guest</button></div></div>
+<div class="login" id="login" role="dialog" aria-modal="true" aria-label="Log in"><div class="box"><button class="back" id="login-back" type="button" aria-label="Back to log in">← Back</button><button class="gear" id="login-gear" type="button" aria-label="Server settings">⚙️</button><button class="lgi" id="lgi" aria-label="My profile">🧢</button><h1>Welcome, Explorer!</h1><div class="pgl" id="pgl">Log in</div><div id="accts"></div><p id="newq">Log in with your email and password</p><input id="who-in" type="email" maxlength="254" placeholder="Email" aria-label="Email" autocomplete="email" autocapitalize="off" spellcheck="false"><div class="pwrow"><input id="pw-in" type="password" maxlength="128" placeholder="Password" autocomplete="current-password" aria-label="Password"><button class="showpw" type="button" data-show="pw-in">Show</button></div><div class="lerr" id="lerr" role="alert"></div><button class="big" id="login-go">Let's Go! 🚀</button><button class="guest" id="login-new">New here? Create an account</button><button class="guest" id="login-guest">Continue as Guest</button></div></div>
 
 <script>
 var P=[
@@ -183,32 +200,49 @@ var P=[
 {id:"green",t:"My Green Community",s:"Environmental Stewardship & Green Living",ic:"♻️",kid:"🌳",c:"#4be07a",c2:"#2aa64a",c3:"#0f6a2c",w:"Protect · Conserve · Recycle · Sustain · Lead",d:"Take care of our planet by recycling, planting, and saving energy!",a:[["♻️","Sort the recycling"],["🌳","Plant a tree"],["💡","Lights-off energy hero"]]},
 {id:"tech",t:"Technology & My Future",s:"Technology, AI & Innovation",ic:"🤖",kid:"💻",c:"#4d9dff",c2:"#2266e0",c3:"#0f3a9a",w:"Learn · Create · Innovate · Solve · Lead",d:"Meet friendly robots, learn to code, and invent cool solutions!",a:[["🤖","Teach the robot to dance"],["🧩","Code puzzle"],["💡","Invent a fix for your neighborhood"]]}
 ];
-var pts=0,done={},cur=null,acct=null,icon="🧢",color="#1f8a3b",pic=null,pw=null;
+var pts=0,done={},cur=null,acct=null,dname="",icon="🧢",color="#1f8a3b",pic=null;
 var $=function(i){return document.getElementById(i)};
-function saveProfile(nm){try{localStorage.setItem("yiemn_name",nm)}catch(e){}}
-function loadProfile(){try{return localStorage.getItem("yiemn_name")}catch(e){return null}}
-function listAccts(){var a=[];try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf("yiemn_acct_")===0){var o=JSON.parse(localStorage.getItem(k))||{};a.push({name:o.name||k.slice(11),pts:+o.pts||0,icon:o.icon||"🧢",color:o.color||"#1f8a3b",pic:o.pic||null,locked:!!o.pw})}}}catch(e){}a.sort(function(x,y){return x.name.toLowerCase()<y.name.toLowerCase()?-1:1});return a}
-function renderAccts(){var box=$("accts");box.textContent="";box.parentNode.classList.remove("asking");$("newq").textContent="Log in with your username and password"}
-function rec(nm){try{var r=localStorage.getItem(akey(nm));return r?JSON.parse(r):null}catch(e){return null}}
-function sha(str){try{var d=new TextEncoder().encode(str);return crypto.subtle.digest("SHA-256",d).then(function(b){return Array.prototype.map.call(new Uint8Array(b),function(x){return ("0"+x.toString(16)).slice(-2)}).join("")})}catch(e){var h=5381;for(var i=0;i<str.length;i++)h=((h<<5)+h+str.charCodeAt(i))|0;return Promise.resolve("f"+(h>>>0).toString(16))}}
-function mkPw(pass){var salt=Math.random().toString(36).slice(2)+Date.now().toString(36);return sha(salt+"|"+pass).then(function(h){return{salt:salt,hash:h}})}
-function checkPw(r,pass){return sha(r.pw.salt+"|"+pass).then(function(h){return h===r.pw.hash})}
-function lerr(m){$("lerr").textContent=m||""}
-function askPw(nm){var box=$("accts");box.textContent="";box.parentNode.classList.add("asking");lerr("");
- var h=document.createElement("p");h.className="pick";h.textContent="Hi "+nm+"! Type your password:";box.appendChild(h);
- var w=document.createElement("div");w.className="pwrow";var i=document.createElement("input");i.type="password";i.id="pw-ask";i.maxLength=40;i.autocomplete="off";i.setAttribute("aria-label","Password for "+nm);
- var sh=document.createElement("button");sh.type="button";sh.className="showpw";sh.textContent="Show";sh.setAttribute("data-show","pw-ask");w.appendChild(i);w.appendChild(sh);box.appendChild(w);
- var go=document.createElement("button");go.className="big";go.textContent="Log in ▶";
- var bk=document.createElement("button");bk.className="guest";bk.textContent="← Back";
- function submit(){if(!i.value){lerr("Type your password.");i.focus();return}var r=rec(nm);if(!r||!r.pw){saveProfile(nm);enter(nm);return}checkPw(r,i.value).then(function(ok){if(ok){lerr("");saveProfile(r.name||nm);enter(r.name||nm)}else{lerr("That password isn't right. Try again!");i.value="";i.focus()}})}
- go.onclick=submit;i.onkeydown=function(e){if(e.key==="Enter")submit()};bk.onclick=function(){lerr("");renderAccts()};
- box.appendChild(go);box.appendChild(bk);setTimeout(function(){i.focus()},50)}
+// ---- YIEMN auth server ----
+var DEFAULT_API="http://localhost:8080"; // default YIEMN auth-service URL (change it on the login screen with the gear icon)
+var API_BASE=DEFAULT_API;
+try{var sv=JSON.parse(localStorage.getItem("yiemn_server")||"null");if(sv&&sv.base)API_BASE=sv.base}catch(e){}
+function buildBase(addr,port){addr=(addr||"").trim();port=(port||"").trim();
+ if(!addr)return{err:"Type the server address."};
+ if(port&&(!/^\d{1,5}$/.test(port)||+port<1||+port>65535))return{err:"Port must be a number from 1 to 65535."};
+ if(!/^https?:\/\//i.test(addr))addr=(/^(localhost|\d{1,3}(\.\d{1,3}){3}|\[.*\])(:|\/|$)/i.test(addr)?"http://":"https://")+addr;
+ var u;try{u=new URL(addr)}catch(e){return{err:"That address doesn't look right."}}
+ if(!u.hostname)return{err:"That address doesn't look right."}
+ if(port)u.port=port;
+ if(location.protocol==="https:"&&u.protocol==="http:"&&u.hostname!=="localhost"&&u.hostname!=="127.0.0.1")return{err:"This page is secure, so the server address must start with https://"};
+ return{base:u.protocol+"//"+u.host}}
+var tok=null,user=null,refreshing=null;
+function setTok(b){tok={access:b.access_token,refresh:b.refresh_token};if(b.user)user=b.user}
+function rawApi(path,o){o=o||{};var h={"Content-Type":"application/json"};if(o.auth&&tok)h.Authorization="Bearer "+tok.access;
+ return fetch(API_BASE+path,{method:o.method||"GET",headers:h,body:o.body?JSON.stringify(o.body):undefined}).then(function(r){
+  return(r.status===204?Promise.resolve({}):r.json().catch(function(){return{}})).then(function(b){
+   if(!r.ok){var e=new Error((b.error&&b.error.message)||"Request failed");e.status=r.status;e.code=b.error&&b.error.code;throw e}return b})},
+  function(){var e=new Error("network");e.code="network";throw e})}
+function refreshTok(){if(!refreshing){refreshing=rawApi("/v1/auth/refresh",{method:"POST",body:{refresh_token:tok.refresh}}).then(setTok).then(function(){refreshing=null},function(e){refreshing=null;throw e})}return refreshing}
+function authed(path,o){o=Object.assign({auth:true},o||{});if(!tok)return Promise.reject(Object.assign(new Error("no session"),{status:401}));
+ return rawApi(path,o).catch(function(e){if(e.status!==401||!tok)throw e;return refreshTok().then(function(){return rawApi(path,o)})})}
+function friendly(e){var c=e.code,st=e.status;
+ if(c==="network")return"Can't reach the YIEMN server. Check your internet and try again.";
+ if(st===401)return"That email or password isn't right. Try again!";
+ if(st===409)return"That email already has an account. Try logging in!";
+ if(st===429)return"Too many tries. Wait a minute and try again.";
+ if(st===400)return e.message;
+ return"The YIEMN server is busy. Try again soon."}
+function setPg(t,hideIcon,hideGear){var bx=$("login").firstElementChild;$("pgl").textContent=t;bx.classList.toggle("nolgi",!!hideIcon);bx.classList.toggle("nogear",!!hideGear)}
+function lerr(m,ok){var e=$("lerr");e.textContent=m||"";e.classList.toggle("ok",!!ok)}
+function busy(btn,on){btn.disabled=on}
+function saveProfile(){}
+function renderAccts(){var box=$("accts");setPg("Log in");box.textContent="";box.parentNode.classList.remove("asking");$("newq").textContent="Log in with your email and password"}
 function showLogin(){document.documentElement.classList.add("locked");window.scrollTo(0,0);lerr("");setTimeout(function(){window.fitLoginCard&&window.fitLoginCard()},0);$("pw-in").value="";renderAccts();$("login").style.display="flex"}
-function akey(nm){return "yiemn_acct_"+nm.toLowerCase()}
+function akey(id){return "yiemn_u_"+id}
 function showStats(){$("pts").textContent=pts;$("lv").textContent=1+Math.floor(pts/50)}
-function saveAcct(){if(!acct)return;try{localStorage.setItem(akey(acct),JSON.stringify({name:acct,pts:pts,done:done,icon:icon,color:color,pic:pic,pw:pw}))}catch(e){}}
-function resetAcct(){pts=0;done={};icon="🧢";color="#1f8a3b";pic=null;pw=null}
-function loadAcct(nm){resetAcct();try{var r=localStorage.getItem(akey(nm));if(r){var o=JSON.parse(r);pts=+o.pts||0;done=o.done||{};icon=o.icon||icon;color=o.color||color;pic=o.pic||null;pw=o.pw||null}}catch(e){}}
+function saveAcct(){if(!acct)return;try{localStorage.setItem(akey(acct),JSON.stringify({pts:pts,done:done,icon:icon,color:color,pic:pic}))}catch(e){}}
+function resetAcct(){pts=0;done={};icon="🧢";color="#1f8a3b";pic=null}
+function loadAcct(nm){resetAcct();try{var r=localStorage.getItem(akey(nm));if(r){var o=JSON.parse(r);pts=+o.pts||0;done=o.done||{};icon=o.icon||icon;color=o.color||color;pic=o.pic||null}}catch(e){}}
 function applyAvatar(){var b=$("avb"),av=$("av"),ic=$("avi"),l=$("lgi");b.style.borderColor=color;l.style.borderColor=color;l.textContent="";
  if(pic){var li=document.createElement("img");li.src=pic;li.alt="";li.style.cssText="width:100%;height:100%;object-fit:cover";l.appendChild(li)}else{l.textContent=icon}
  if(pic){var im=new Image();im.onload=function(){var g=av.getContext("2d");g.clearRect(0,0,88,88);g.drawImage(im,0,0,88,88);av.style.display="block";ic.style.display="none"};im.src=pic}
@@ -217,22 +251,17 @@ function usePic(c){var av=$("av");av.getContext("2d").drawImage(c,0,0,88,88);pic
 function picker(){
  var E=["🧢","😀","😎","🤓","🦸🏾","🦄","🐶","🐱","🦊","🐼","🦁","🐸","🐢","🦋","🚀","⚽","🏀","🎨","🎸","🌟","🌈","🍎","🤖","🌳"];
  var C=["#1f8a3b","#2266e0","#e02f3a","#e08600","#8e44ad","#e91e8c","#00a5a5","#444444"];
- openSheet('<h3>Profile</h3>'+(acct?'<p><b></b></p>':'')+'<p>Pick a picture:</p><div class="grid">'+E.map(function(e){return '<button class="ic2'+(!pic&&e===icon?' sel':'')+'" data-ic="'+e+'" aria-label="Pick icon '+e+'">'+e+'</button>'}).join("")+'</div><p>Pick a color:</p><div class="grid">'+C.map(function(c){return '<button class="sw'+(c===color?' sel':'')+'" data-col="'+c+'" style="background:'+c+'" aria-label="Pick color"></button>'}).join("")+'</div>'+(acct?'<button class="big alt" data-x="chpw" style="width:100%;flex:none;margin-top:6px">🔑 '+(pw?"Change password":"Set a password")+'</button>':"")+'<div class="row"><button class="big alt" data-x="selfie">📸 Selfie</button><button class="big" data-x="close">Done</button></div>',color);
- if(acct){var nb=$("panel").querySelector("p b");if(nb)nb.textContent=acct}}
-function pwForm(){var has=!!pw,ids=(has?"cp-old,":"")+"cp-new,cp-new2";
- openSheet('<h3>'+(has?"Change password":"Set a password")+'</h3>'+(has?'<input id="cp-old" type="password" maxlength="40" autocomplete="off" placeholder="Current password" aria-label="Current password">':'')+'<input id="cp-new" type="password" maxlength="40" autocomplete="off" placeholder="New password" aria-label="New password"><input id="cp-new2" type="password" maxlength="40" autocomplete="off" placeholder="Type the new password again" aria-label="New password again"><button class="showpw" type="button" data-show="'+ids+'" style="position:static;transform:none;display:block;margin:6px auto 0">Show</button><div class="lerr" id="cp-err" role="alert"></div><div class="row"><button class="big alt" data-x="prof">Back</button><button class="big" id="cp-save">Save</button></div>',color);
- function err(m){$("cp-err").textContent=m||""}
- function save(){err("");var n=$("cp-new").value,n2=$("cp-new2").value;
-  if(!n){err("Type a new password.");return}
-  if(n!==n2){err("The new passwords don't match.");return}
-  var v=pw?checkPw({pw:pw},$("cp-old").value):Promise.resolve(true);
-  v.then(function(ok){if(!ok){err("Your current password isn't right.");return}
-   return mkPw(n).then(function(o){pw=o;saveAcct();toast("🔑 Password saved!");picker()})})}
- $("cp-save").onclick=save;
- [].forEach.call($("panel").querySelectorAll("input"),function(i){i.onkeydown=function(e){if(e.key==="Enter")save()}});
- setTimeout(function(){$(has?"cp-old":"cp-new").focus()},50)}
+ openSheet('<h3>Profile</h3>'+(acct?'<p><b></b></p>':'')+'<p>Pick a picture:</p><div class="grid">'+E.map(function(e){return '<button class="ic2'+(!pic&&e===icon?' sel':'')+'" data-ic="'+e+'" aria-label="Pick icon '+e+'">'+e+'</button>'}).join("")+'</div><p>Pick a color:</p><div class="grid">'+C.map(function(c){return '<button class="sw'+(c===color?' sel':'')+'" data-col="'+c+'" style="background:'+c+'" aria-label="Pick color"></button>'}).join("")+'</div>'+(acct?'<button class="big alt" data-x="chname" style="width:100%;flex:none;margin-top:6px">✏️ Change my name</button>':"")+'<div class="row"><button class="big alt" data-x="selfie">📸 Selfie</button><button class="big" data-x="close">Done</button></div>',color);
+ if(acct){var nb=$("panel").querySelector("p b");if(nb)nb.textContent=dname}}
+function nameForm(){
+ openSheet('<h3>Change my name</h3><input id="cn-in" maxlength="64" autocomplete="off" aria-label="My name" value=""><div class="lerr" id="cn-err" role="alert"></div><div class="row"><button class="big alt" data-x="prof">Back</button><button class="big" id="cn-save">Save</button></div>',color);
+ var i=$("cn-in");i.value=dname;function err(m){$("cn-err").textContent=m||""}
+ function save(){err("");var v=i.value.trim();if(!v){err("Type your name.");return}
+  var b=$("cn-save");b.disabled=true;
+  authed("/v1/users/me",{method:"PATCH",body:{display_name:v}}).then(function(u){user=u;dname=u.display_name;$("nm").textContent=dname+"!";toast("✏️ Name saved!");picker()},function(e){b.disabled=false;err(e.status===401?"Please log in again.":friendly(e))})}
+ $("cn-save").onclick=save;i.onkeydown=function(e){if(e.key==="Enter")save()};setTimeout(function(){i.focus()},50)}
 
-function enter(nm){acct=nm||null;if(nm){loadAcct(nm)}else{resetAcct()}if(nm)saveAcct();showStats();applyAvatar();$("face").style.display="";$("me").style.display="none";$("nm").textContent=nm?nm+"!":"Explorer!";$("login").style.display="none";document.documentElement.classList.remove("locked");if(nm)speak("Welcome, "+nm+"!")}
+function enter(u){acct=u?u.id:null;dname=u?u.display_name:"";if(u){loadAcct(acct)}else{resetAcct()}if(u)saveAcct();showStats();applyAvatar();$("face").style.display="";$("me").style.display="none";$("nm").textContent=u?dname+"!":"Explorer!";$("login").style.display="none";document.documentElement.classList.remove("locked");if(u)speak("Welcome, "+dname+"!")}
 (function(){var L=$("login"),vv=window.visualViewport;var bx=L.firstElementChild;function stop(e){e.preventDefault()}
  L.addEventListener("touchmove",stop,{passive:false});L.addEventListener("wheel",stop,{passive:false});L.addEventListener("scroll",function(){L.scrollTop=0});
  function fit(){if(L.style.display==="none")return;L.style.height=vv.height+"px";L.style.top=vv.offsetTop+"px";L.style.bottom="auto"}
@@ -242,27 +271,60 @@ function enter(nm){acct=nm||null;if(nm){loadAcct(nm)}else{resetAcct()}if(nm)save
  if(window.ResizeObserver)new ResizeObserver(fitCard).observe(bx);
  window.fitLoginCard=fitCard;fitCard()})();
 showLogin();
-$("login-go").onclick=function(){var v=$("who-in").value.trim(),p=$("pw-in").value;lerr("");if(!v){lerr("Type your username.");$("who-in").focus();return}
+$("login-go").onclick=function(){var v=$("who-in").value.trim(),p=$("pw-in").value,b=$("login-go");lerr("");
+ if(!v){lerr("Type your email.");$("who-in").focus();return}
  if(!p){lerr("Type your password.");$("pw-in").focus();return}
- var r=rec(v);
- if(r&&r.pw){checkPw(r,p).then(function(ok){if(ok){saveProfile(r.name||v);enter(r.name||v)}else{lerr("That password isn't right. Try again!");$("pw-in").value="";$("pw-in").focus()}});return}
- if(r){mkPw(p).then(function(pwo){saveProfile(r.name||v);enter(r.name||v);pw=pwo;saveAcct()});return}
- askCreate(v,p)};
-function createAcct(v,p){var fresh=!acct,keep={i:icon,c:color,p:pic};
- (p?mkPw(p):Promise.resolve(null)).then(function(pwo){saveProfile(v);enter(v);if(fresh){icon=keep.i;color=keep.c;pic=keep.p}pw=pwo;saveAcct();applyAvatar()})}
-function askCreate(nm,p){var box=$("accts");box.textContent="";box.parentNode.classList.add("asking");lerr("");
- var h=document.createElement("p");h.className="pick";h.textContent="We don't have an account named "+nm+" yet. Want to create one?";box.appendChild(h);
- var w=document.createElement("div");w.className="pwrow";var i=document.createElement("input");i.type="password";i.id="pw-new";i.maxLength=40;i.autocomplete="off";i.value=p||"";i.placeholder="Make a password";i.setAttribute("aria-label","Make a password");
- var sh=document.createElement("button");sh.type="button";sh.className="showpw";sh.textContent="Show";sh.setAttribute("data-show","pw-new");w.appendChild(i);w.appendChild(sh);box.appendChild(w);
+ busy(b,true);
+ rawApi("/v1/auth/login",{method:"POST",body:{email:v,password:p}}).then(function(r){setTok(r);$("pw-in").value="";busy(b,false);enter(r.user)},function(e){busy(b,false);lerr(friendly(e));if(e.status===401){$("pw-in").value="";$("pw-in").focus()}})};
+function signupView(){var box=$("accts");box.textContent="";box.parentNode.classList.add("asking");lerr("");
+ function mk(id,type,ph,max,ac){var i=document.createElement("input");i.id=id;i.type=type;i.maxLength=max;i.placeholder=ph;i.autocomplete=ac;i.setAttribute("aria-label",ph);return i}
+ setPg("Create account",false,true);
+ var n=mk("su-name","text","Your name",64,"nickname"),e=mk("su-email","email","Email",254,"email");e.setAttribute("autocapitalize","off");e.spellcheck=false;
+ var rl=document.createElement("select");rl.id="su-role";rl.setAttribute("aria-label","I am a");
+ [["student","I am a Student"],["parent","I am a Parent"],["educator","I am an Educator"]].forEach(function(r){var o=document.createElement("option");o.value=r[0];o.textContent=r[1];rl.appendChild(o)});
+ box.appendChild(n);box.appendChild(e);box.appendChild(rl);
+ var w=document.createElement("div");w.className="pwrow";var i=mk("su-pw","password","Make a password",128,"new-password");
+ var sh=document.createElement("button");sh.type="button";sh.className="showpw";sh.textContent="Show";sh.setAttribute("data-show","su-pw");w.appendChild(i);w.appendChild(sh);box.appendChild(w);
+ var hn=document.createElement("p");hn.className="hint";hn.textContent="Use at least 8 letters or numbers. Grown-ups: use a parent or guardian's email for kids under 13.";box.appendChild(hn);
  var go=document.createElement("button");go.className="big";go.textContent="Create my account ✨";
- var bk=document.createElement("button");bk.className="guest";bk.textContent="← No, go back";
- go.onclick=function(){if(rec(nm)){renderAccts();return}if(!i.value){lerr("Make a password to create your account.");i.focus();return}createAcct(nm,i.value)};i.onkeydown=function(e){if(e.key==="Enter")go.click()};bk.onclick=function(){lerr("");renderAccts();$("who-in").focus()};
- box.appendChild(go);box.appendChild(bk);setTimeout(function(){go.focus()},50)}
+ var bk=document.createElement("button");bk.className="guest";bk.textContent="← Back to log in";
+ function submit(){var nm=n.value.trim(),em=e.value.trim(),pw=i.value;lerr("");
+  if(!nm){lerr("Type your name.");n.focus();return}
+  if(!em){lerr("Type your email.");e.focus();return}
+  if(!pw){lerr("Make a password to create your account.");i.focus();return}
+  if(pw.length<8){lerr("Your password needs at least 8 characters.");i.focus();return}
+  busy(go,true);
+  rawApi("/v1/auth/signup",{method:"POST",body:{email:em,password:pw,display_name:nm,role:rl.value}}).then(function(r){setTok(r);busy(go,false);enter(r.user)},function(er){busy(go,false);lerr(friendly(er))})}
+ go.onclick=submit;[n,e,i].forEach(function(x){x.onkeydown=function(ev){if(ev.key==="Enter")submit()}});
+ bk.onclick=function(){lerr("");renderAccts();$("who-in").focus()};
+ box.appendChild(go);setTimeout(function(){n.focus();window.fitLoginCard&&window.fitLoginCard()},50)}
+$("login-new").onclick=function(){signupView()};
+function srvView(){var box=$("accts");box.textContent="";box.parentNode.classList.add("asking");lerr("");
+ var cu;try{cu=new URL(API_BASE)}catch(e){cu=new URL(DEFAULT_API)}
+ function mk(id,type,ph,max,val,im){var i=document.createElement("input");i.id=id;i.type=type;i.maxLength=max;i.placeholder=ph;i.autocomplete="off";i.autocapitalize="off";i.spellcheck=false;i.value=val;i.setAttribute("aria-label",ph);if(im)i.inputMode=im;return i}
+ setPg("⚙️ Server settings",true);
+ var a=mk("sv-addr","text","Server address",200,cu.protocol+"//"+cu.hostname),pt=mk("sv-port","text","Port (like 8080)",5,cu.port,"numeric");
+ box.appendChild(a);box.appendChild(pt);
+ var t=document.createElement("button");t.className="big";t.textContent="Test connection";
+ var sv=document.createElement("button");sv.className="big";sv.textContent="Save ✔";
+ var rs=document.createElement("button");rs.className="guest";rs.textContent="Reset to default";
+ var bk=document.createElement("button");bk.className="guest";bk.textContent="← Back to log in";
+ function get(){var r=buildBase(a.value,pt.value);if(r.err){lerr(r.err);return null}return r.base}
+ t.onclick=function(){lerr("");var base=get();if(!base)return;busy(t,true);lerr("Checking…",true);
+  var ac=window.AbortController?new AbortController():null,tm=setTimeout(function(){ac&&ac.abort()},6000);
+  fetch(base+"/healthz",{signal:ac?ac.signal:undefined}).then(function(r){clearTimeout(tm);busy(t,false);if(r.ok)lerr("✅ Connected!",true);else lerr("The server answered, but it doesn't look healthy ("+r.status+").")},function(){clearTimeout(tm);busy(t,false);lerr("Can't reach that server. Check the address and port.")})};
+ sv.onclick=function(){var base=get();if(!base)return;API_BASE=base;try{localStorage.setItem("yiemn_server",JSON.stringify({base:base}))}catch(e){}renderAccts();lerr("✅ Server saved: "+base,true)};
+ rs.onclick=function(){API_BASE=DEFAULT_API;try{localStorage.removeItem("yiemn_server")}catch(e){}renderAccts();lerr("Server reset to the default.",true)};
+ bk.onclick=function(){renderAccts();lerr("")};
+ [a,pt].forEach(function(x){x.onkeydown=function(ev){if(ev.key==="Enter")sv.click()}});
+ [t,sv,rs].forEach(function(x){box.appendChild(x)});setTimeout(function(){a.focus();window.fitLoginCard&&window.fitLoginCard()},50)}
+$("login-gear").onclick=srvView;
+$("login-back").onclick=function(){lerr("");renderAccts();$("who-in").focus()};
 $("who-in").onkeydown=function(e){if(e.key==="Enter")$("login-go").click()};
 $("pw-in").onkeydown=function(e){if(e.key==="Enter")$("login-go").click()};
 document.addEventListener("click",function(e){var b=e.target.closest("[data-show]");if(!b)return;var ids=b.getAttribute("data-show").split(","),f=$(ids[0]);if(!f)return;var on=f.type==="password";ids.forEach(function(id){var i=$(id);if(i)i.type=on?"text":"password"});b.textContent=on?"Hide":"Show"});
 $("login-guest").onclick=function(){enter("")};
-$("switch").onclick=function(){saveAcct();$("who-in").value="";showLogin()};
+$("switch").onclick=function(){saveAcct();if(tok){var rt=tok.refresh;rawApi("/v1/auth/logout",{method:"POST",body:{refresh_token:rt}}).catch(function(){})}tok=null;user=null;acct=null;dname="";$("who-in").value="";showLogin()};
 function speak(t){try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.rate=.9;u.pitch=1.2;speechSynthesis.speak(u)}catch(e){}}
 function toast(m){var t=$("toast");t.textContent=m;t.classList.add("show");setTimeout(function(){t.classList.remove("show")},1800)}
 $("paths").innerHTML=P.map(function(p){return '<button class="path" data-id="'+p.id+'" style="--c:'+p.c+';--c2:'+p.c2+';--c3:'+p.c3+'"><div class="ic">'+p.ic+'</div><h3>'+p.t+'</h3><p>'+p.s+'</p><div class="kid" aria-hidden="true">'+p.kid+'</div><span class="enter">ENTER ›</span><div class="words">'+p.w+'</div></button>'}).join("");
@@ -290,7 +352,7 @@ document.addEventListener("click",function(e){
  if(el.id==="say"){speak("Explore. Learn. Grow. Make a difference!");return}
  if(el.dataset.ic){icon=el.dataset.ic;pic=null;saveAcct();applyAvatar();picker();return}
  if(el.dataset.col){color=el.dataset.col;saveAcct();applyAvatar();picker();return}
- if(el.dataset.x==="chpw"){pwForm();return}
+ if(el.dataset.x==="chname"){nameForm();return}
  if(el.dataset.x==="prof"){picker();return}
  if(el.dataset.x==="selfie"){close();snap();return}
  if(el.dataset.id){world(el.dataset.id);return}
