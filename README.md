@@ -20,5 +20,6 @@ Keep the `images/` folder next to `index.html`.
 
 ## Notes
 - Accounts and passwords live on the YIEMN auth server. Points, icon, color and selfie are saved in each visitor's own browser only and do not sync between devices.
+- If the server can't be reached while logging in or creating an account, the app offers to switch to offline mode.
 - The auth server must allow this app's origin in its `CORS_ALLOWED_ORIGINS` setting.
 - Fonts (Fredoka, Caveat) load from Google Fonts.

@@ -280,7 +280,7 @@ $("login-go").onclick=function(){var v=$("who-in").value.trim(),p=$("pw-in").val
  if(!v){lerr("Type your email.");$("who-in").focus();return}
  if(!p){lerr("Type your password.");$("pw-in").focus();return}
  busy(b,true);
- rawApi("/v1/auth/login",{method:"POST",body:{email:v,password:p}}).then(function(r){setTok(r);$("pw-in").value="";busy(b,false);enter(r.user)},function(e){busy(b,false);lerr(friendly(e));if(e.status===401){$("pw-in").value="";$("pw-in").focus()}})};
+ rawApi("/v1/auth/login",{method:"POST",body:{email:v,password:p}}).then(function(r){setTok(r);$("pw-in").value="";busy(b,false);enter(r.user)},function(e){busy(b,false);if(e.code==="network"){offerOffline(renderAccts);return}lerr(friendly(e));if(e.status===401){$("pw-in").value="";$("pw-in").focus()}})};
 function signupView(){var box=$("accts");box.textContent="";box.parentNode.classList.add("asking");lerr("");
  function mk(id,type,ph,max,ac){var i=document.createElement("input");i.id=id;i.type=type;i.maxLength=max;i.placeholder=ph;i.autocomplete=ac;i.setAttribute("aria-label",ph);return i}
  setPg("Create account",false,true);
@@ -299,10 +299,17 @@ function signupView(){var box=$("accts");box.textContent="";box.parentNode.class
   if(!pw){lerr("Make a password to create your account.");i.focus();return}
   if(pw.length<8){lerr("Your password needs at least 8 characters.");i.focus();return}
   busy(go,true);
-  rawApi("/v1/auth/signup",{method:"POST",body:{email:em,password:pw,display_name:nm,role:rl.value}}).then(function(r){setTok(r);busy(go,false);enter(r.user)},function(er){busy(go,false);lerr(friendly(er))})}
+  rawApi("/v1/auth/signup",{method:"POST",body:{email:em,password:pw,display_name:nm,role:rl.value}}).then(function(r){setTok(r);busy(go,false);enter(r.user)},function(er){busy(go,false);if(er.code==="network"){offerOffline(signupView);return}lerr(friendly(er))})}
  go.onclick=submit;[n,e,i].forEach(function(x){x.onkeydown=function(ev){if(ev.key==="Enter")submit()}});
  bk.onclick=function(){lerr("");renderAccts();$("who-in").focus()};
  box.appendChild(go);setTimeout(function(){n.focus();window.fitLoginCard&&window.fitLoginCard()},50)}
+function offerOffline(back){var box=$("accts");box.textContent="";box.parentNode.classList.add("asking");box.parentNode.classList.remove("offl");lerr("");setPg("Server not connected");
+ var m=document.createElement("p");m.className="hint";m.style.fontSize="17px";m.textContent="We can't reach the YIEMN server right now. Would you like to switch to offline mode?";box.appendChild(m);
+ var y=document.createElement("button");y.className="big";y.textContent="Switch to offline mode";
+ var n=document.createElement("button");n.className="guest";n.textContent="Not now";
+ y.onclick=function(){offlineOn=true;try{localStorage.setItem("yiemn_offline","1")}catch(e){}$("pw-in").value="";renderAccts()};
+ n.onclick=function(){back()};box.appendChild(y);box.appendChild(n);
+ setTimeout(function(){y.focus();window.fitLoginCard&&window.fitLoginCard()},50)}
 $("login-new").onclick=function(){signupView()};
 function srvView(){var box=$("accts");box.textContent="";box.parentNode.classList.add("asking");box.parentNode.classList.remove("offl");lerr("");
  var cu;try{cu=new URL(API_BASE)}catch(e){cu=new URL(DEFAULT_API)}
