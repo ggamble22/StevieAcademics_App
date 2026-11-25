@@ -8,8 +8,7 @@ Keep the `images/` folder next to `index.html`.
 
 ## What's in it
 - Login with email and password through the YIEMN auth server (create an account with a name, email, password and user type: student, parent or educator)
-- Play offline (no server): use the app without logging in; points, name, icon and color are saved in the browser
-- Server settings (gear icon on the login page) to set the auth server address and port, with a Test connection button
+- Server settings (gear icon on the login page) to set the auth server address and port, with a Test connection button and a Play offline (no server) option that saves points, name, icon and color in the browser
 - Five worlds: Money & My Future, Food & Opportunity, Healthy Me, My Green Community, Technology & My Future
 - Activities that earn LS Points and levels, plus a visual My Garden
 - Profile with icon, color and change name

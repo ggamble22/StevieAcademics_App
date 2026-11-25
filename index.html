@@ -190,7 +190,7 @@ html.locked,html.locked body{overflow:hidden;height:100%;overscroll-behavior:non
 <div class="sheet" id="sheet" role="dialog" aria-modal="true"><div class="panel" id="panel"></div></div>
 <div class="cam" id="cam" role="dialog" aria-modal="true" aria-label="Camera"><p>Smile! 😄 Line up your face in the circle.</p><video id="vid" autoplay playsinline muted></video><div class="row"><button class="big" id="shot">📸 Take picture</button><button class="big alt" id="cancel" style="color:#fff">Cancel</button></div></div>
 <div class="toast" id="toast"></div>
-<div class="login" id="login" role="dialog" aria-modal="true" aria-label="Log in"><div class="box"><button class="back" id="login-back" type="button" aria-label="Back to log in">← Back</button><button class="gear" id="login-gear" type="button" aria-label="Server settings">⚙️</button><button class="lgi" id="lgi" aria-label="My profile">🧢</button><h1>Welcome, Explorer!</h1><div class="pgl" id="pgl">Log in</div><div id="accts"></div><p id="newq">Log in with your email and password</p><input id="who-in" type="email" maxlength="254" placeholder="Email" aria-label="Email" autocomplete="email" autocapitalize="off" spellcheck="false"><div class="pwrow"><input id="pw-in" type="password" maxlength="128" placeholder="Password" autocomplete="current-password" aria-label="Password"><button class="showpw" type="button" data-show="pw-in">Show</button></div><div class="lerr" id="lerr" role="alert"></div><button class="big" id="login-go">Let's Go! 🚀</button><button class="guest" id="login-new">New here? Create an account</button><button class="guest" id="login-local">Play offline (no server)</button><button class="guest" id="login-guest">Continue as Guest</button></div></div>
+<div class="login" id="login" role="dialog" aria-modal="true" aria-label="Log in"><div class="box"><button class="back" id="login-back" type="button" aria-label="Back to log in">← Back</button><button class="gear" id="login-gear" type="button" aria-label="Server settings">⚙️</button><button class="lgi" id="lgi" aria-label="My profile">🧢</button><h1>Welcome, Explorer!</h1><div class="pgl" id="pgl">Log in</div><div id="accts"></div><p id="newq">Log in with your email and password</p><input id="who-in" type="email" maxlength="254" placeholder="Email" aria-label="Email" autocomplete="email" autocapitalize="off" spellcheck="false"><div class="pwrow"><input id="pw-in" type="password" maxlength="128" placeholder="Password" autocomplete="current-password" aria-label="Password"><button class="showpw" type="button" data-show="pw-in">Show</button></div><div class="lerr" id="lerr" role="alert"></div><button class="big" id="login-go">Let's Go! 🚀</button><button class="guest" id="login-new">New here? Create an account</button><button class="guest" id="login-guest">Continue as Guest</button></div></div>
 
 <script>
 var P=[
@@ -308,6 +308,7 @@ function srvView(){var box=$("accts");box.textContent="";box.parentNode.classLis
  box.appendChild(a);box.appendChild(pt);
  var t=document.createElement("button");t.className="big";t.textContent="Test connection";
  var sv=document.createElement("button");sv.className="big";sv.textContent="Save ✔";
+ var off=document.createElement("button");off.className="guest";off.textContent="Play offline (no server)";off.onclick=playOffline;
  var rs=document.createElement("button");rs.className="guest";rs.textContent="Reset to default";
  var bk=document.createElement("button");bk.className="guest";bk.textContent="← Back to log in";
  function get(){var r=buildBase(a.value,pt.value);if(r.err){lerr(r.err);return null}return r.base}
@@ -318,13 +319,13 @@ function srvView(){var box=$("accts");box.textContent="";box.parentNode.classLis
  rs.onclick=function(){API_BASE=DEFAULT_API;try{localStorage.removeItem("yiemn_server")}catch(e){}renderAccts();lerr("Server reset to the default.",true)};
  bk.onclick=function(){renderAccts();lerr("")};
  [a,pt].forEach(function(x){x.onkeydown=function(ev){if(ev.key==="Enter")sv.click()}});
- [t,sv,rs].forEach(function(x){box.appendChild(x)});setTimeout(function(){a.focus();window.fitLoginCard&&window.fitLoginCard()},50)}
+ [t,sv,off,rs].forEach(function(x){box.appendChild(x)});setTimeout(function(){a.focus();window.fitLoginCard&&window.fitLoginCard()},50)}
 $("login-gear").onclick=srvView;
 $("login-back").onclick=function(){lerr("");renderAccts();$("who-in").focus()};
 $("who-in").onkeydown=function(e){if(e.key==="Enter")$("login-go").click()};
 $("pw-in").onkeydown=function(e){if(e.key==="Enter")$("login-go").click()};
 document.addEventListener("click",function(e){var b=e.target.closest("[data-show]");if(!b)return;var ids=b.getAttribute("data-show").split(","),f=$(ids[0]);if(!f)return;var on=f.type==="password";ids.forEach(function(id){var i=$(id);if(i)i.type=on?"text":"password"});b.textContent=on?"Hide":"Show"});
-$("login-local").onclick=function(){var n="Explorer";try{n=localStorage.getItem("yiemn_local_name")||n}catch(e){}enter({id:"local",display_name:n,local:true})};
+function playOffline(){var n="Explorer";try{n=localStorage.getItem("yiemn_local_name")||n}catch(e){}enter({id:"local",display_name:n,local:true})}
 $("login-guest").onclick=function(){enter("")};
 $("switch").onclick=function(){saveAcct();if(tok){var rt=tok.refresh;rawApi("/v1/auth/logout",{method:"POST",body:{refresh_token:rt}}).catch(function(){})}tok=null;user=null;acct=null;dname="";$("who-in").value="";showLogin()};
 function speak(t){try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.rate=.9;u.pitch=1.2;speechSynthesis.speak(u)}catch(e){}}
