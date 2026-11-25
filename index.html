@@ -132,6 +132,9 @@ html.locked,html.locked body{overflow:hidden;height:100%;overscroll-behavior:non
 .login .box.nolgi>.lgi{display:none}
 .login .box.nolgi>.gear,.login .box.nogear>.gear{display:none}
 .login .box.nolgi>h1{display:none}
+.login .box.offl>.back{display:none}
+.login .chk{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:14px;font:600 16px Fredoka,sans-serif;color:#0d2a4a;cursor:pointer}
+.login .chk input{width:26px;height:26px;min-width:26px;padding:0;margin:0;border:0;box-shadow:none;flex:none;accent-color:var(--g)}
 .login .box.nolgi>.back{left:auto;right:10px}
 .login .box.nolgi{padding-top:56px}
 .pgl{font-weight:700;font-size:18px;color:var(--g);margin-top:2px}
@@ -204,7 +207,8 @@ var pts=0,done={},cur=null,acct=null,dname="",icon="🧢",color="#1f8a3b",pic=nu
 var $=function(i){return document.getElementById(i)};
 // ---- YIEMN auth server ----
 var DEFAULT_API="http://localhost:8080"; // default YIEMN auth-service URL (change it on the login screen with the gear icon)
-var API_BASE=DEFAULT_API;
+var API_BASE=DEFAULT_API,offlineOn=false;
+try{offlineOn=localStorage.getItem("yiemn_offline")==="1"}catch(e){}
 try{var sv=JSON.parse(localStorage.getItem("yiemn_server")||"null");if(sv&&sv.base)API_BASE=sv.base}catch(e){}
 function buildBase(addr,port){addr=(addr||"").trim();port=(port||"").trim();
  if(!addr)return{err:"Type the server address."};
@@ -236,7 +240,7 @@ function setPg(t,hideIcon,hideGear){var bx=$("login").firstElementChild;$("pgl")
 function lerr(m,ok){var e=$("lerr");e.textContent=m||"";e.classList.toggle("ok",!!ok)}
 function busy(btn,on){btn.disabled=on}
 function saveProfile(){}
-function renderAccts(){var box=$("accts");setPg("Log in");box.textContent="";box.parentNode.classList.remove("asking");$("newq").textContent="Log in with your email and password"}
+function renderAccts(){var box=$("accts");box.parentNode.classList.remove("offl");if(offlineOn){offlineView();return}setPg("Log in");box.textContent="";box.parentNode.classList.remove("asking");$("newq").textContent="Log in with your email and password"}
 function showLogin(){document.documentElement.classList.add("locked");window.scrollTo(0,0);lerr("");setTimeout(function(){window.fitLoginCard&&window.fitLoginCard()},0);$("pw-in").value="";renderAccts();$("login").style.display="flex"}
 function akey(id){return "yiemn_u_"+id}
 function showStats(){$("pts").textContent=pts;$("lv").textContent=1+Math.floor(pts/50)}
@@ -300,26 +304,28 @@ function signupView(){var box=$("accts");box.textContent="";box.parentNode.class
  bk.onclick=function(){lerr("");renderAccts();$("who-in").focus()};
  box.appendChild(go);setTimeout(function(){n.focus();window.fitLoginCard&&window.fitLoginCard()},50)}
 $("login-new").onclick=function(){signupView()};
-function srvView(){var box=$("accts");box.textContent="";box.parentNode.classList.add("asking");lerr("");
+function srvView(){var box=$("accts");box.textContent="";box.parentNode.classList.add("asking");box.parentNode.classList.remove("offl");lerr("");
  var cu;try{cu=new URL(API_BASE)}catch(e){cu=new URL(DEFAULT_API)}
  function mk(id,type,ph,max,val,im){var i=document.createElement("input");i.id=id;i.type=type;i.maxLength=max;i.placeholder=ph;i.autocomplete="off";i.autocapitalize="off";i.spellcheck=false;i.value=val;i.setAttribute("aria-label",ph);if(im)i.inputMode=im;return i}
  setPg("⚙️ Server settings",true);
  var a=mk("sv-addr","text","Server address",200,cu.protocol+"//"+cu.hostname),pt=mk("sv-port","text","Port (like 8080)",5,cu.port,"numeric");
- box.appendChild(a);box.appendChild(pt);
+ var cl=document.createElement("label");cl.className="chk";var cb=document.createElement("input");cb.type="checkbox";cb.id="sv-off";cb.checked=offlineOn;cl.appendChild(cb);cl.appendChild(document.createTextNode("Use offline mode (no server)"));
+ box.appendChild(cl);box.appendChild(a);box.appendChild(pt);
  var t=document.createElement("button");t.className="big";t.textContent="Test connection";
  var sv=document.createElement("button");sv.className="big";sv.textContent="Save ✔";
- var off=document.createElement("button");off.className="guest";off.textContent="Play offline (no server)";off.onclick=playOffline;
  var rs=document.createElement("button");rs.className="guest";rs.textContent="Reset to default";
  var bk=document.createElement("button");bk.className="guest";bk.textContent="← Back to log in";
  function get(){var r=buildBase(a.value,pt.value);if(r.err){lerr(r.err);return null}return r.base}
  t.onclick=function(){lerr("");var base=get();if(!base)return;busy(t,true);lerr("Checking…",true);
   var ac=window.AbortController?new AbortController():null,tm=setTimeout(function(){ac&&ac.abort()},6000);
   fetch(base+"/healthz",{signal:ac?ac.signal:undefined}).then(function(r){clearTimeout(tm);busy(t,false);if(r.ok)lerr("✅ Connected!",true);else lerr("The server answered, but it doesn't look healthy ("+r.status+").")},function(){clearTimeout(tm);busy(t,false);lerr("Can't reach that server. Check the address and port.")})};
- sv.onclick=function(){var base=get();if(!base)return;API_BASE=base;try{localStorage.setItem("yiemn_server",JSON.stringify({base:base}))}catch(e){}renderAccts();lerr("✅ Server saved: "+base,true)};
- rs.onclick=function(){API_BASE=DEFAULT_API;try{localStorage.removeItem("yiemn_server")}catch(e){}renderAccts();lerr("Server reset to the default.",true)};
+ sv.onclick=function(){if(cb.checked){offlineOn=true;try{localStorage.setItem("yiemn_offline","1")}catch(e){}renderAccts();lerr("✅ Offline mode is on.",true);return}
+  var base=get();if(!base)return;offlineOn=false;try{localStorage.removeItem("yiemn_offline")}catch(e){}API_BASE=base;try{localStorage.setItem("yiemn_server",JSON.stringify({base:base}))}catch(e){}renderAccts();lerr("✅ Server saved: "+base,true)};
+ rs.onclick=function(){API_BASE=DEFAULT_API;offlineOn=false;try{localStorage.removeItem("yiemn_server");localStorage.removeItem("yiemn_offline")}catch(e){}renderAccts();lerr("Server reset to the default.",true)};
  bk.onclick=function(){renderAccts();lerr("")};
  [a,pt].forEach(function(x){x.onkeydown=function(ev){if(ev.key==="Enter")sv.click()}});
- [t,sv,off,rs].forEach(function(x){box.appendChild(x)});setTimeout(function(){a.focus();window.fitLoginCard&&window.fitLoginCard()},50)}
+ function sync(){a.disabled=pt.disabled=t.disabled=cb.checked}cb.onchange=function(){lerr("");sync()};sync();
+ [t,sv,rs].forEach(function(x){box.appendChild(x)});setTimeout(function(){a.focus();window.fitLoginCard&&window.fitLoginCard()},50)}
 $("login-gear").onclick=srvView;
 $("login-back").onclick=function(){lerr("");renderAccts();$("who-in").focus()};
 $("who-in").onkeydown=function(e){if(e.key==="Enter")$("login-go").click()};
@@ -328,7 +334,7 @@ document.addEventListener("click",function(e){var b=e.target.closest("[data-show
 function getLP(){var a=[];try{a=JSON.parse(localStorage.getItem("yiemn_local_profiles")||"[]")}catch(e){}
  if(!a.length){try{if(localStorage.getItem("yiemn_u_local"))a=[{id:"local",name:localStorage.getItem("yiemn_local_name")||"Explorer"}]}catch(e){}}return a}
 function setLP(a){try{localStorage.setItem("yiemn_local_profiles",JSON.stringify(a))}catch(e){}}
-function offlineView(){var box=$("accts");box.textContent="";box.parentNode.classList.add("asking");lerr("");setPg("Offline players",true,true);
+function offlineView(){var box=$("accts");box.textContent="";box.parentNode.classList.add("asking","offl");lerr("");setPg("Offline players");
  getLP().forEach(function(p){var b=document.createElement("button");b.className="big";b.textContent=p.name;b.onclick=function(){enter({id:p.id,display_name:p.name,local:true})};box.appendChild(b)});
  var i=document.createElement("input");i.id="op-name";i.type="text";i.maxLength=64;i.placeholder="New player name";i.autocomplete="off";i.setAttribute("aria-label","New player name");
  var add=document.createElement("button");add.className="big";add.textContent="➕ Add player";
@@ -336,7 +342,7 @@ function offlineView(){var box=$("accts");box.textContent="";box.parentNode.clas
   var l=getLP(),id="local_"+Date.now().toString(36);l.push({id:id,name:v});setLP(l);enter({id:id,display_name:v,local:true})}
  add.onclick=go;i.onkeydown=function(e){if(e.key==="Enter")go()};box.appendChild(i);box.appendChild(add);
  setTimeout(function(){window.fitLoginCard&&window.fitLoginCard()},50)}
-function playOffline(){offlineView()}
+
 $("login-guest").onclick=function(){enter("")};
 $("switch").onclick=function(){saveAcct();if(tok){var rt=tok.refresh;rawApi("/v1/auth/logout",{method:"POST",body:{refresh_token:rt}}).catch(function(){})}var wasLocal=localMode;tok=null;user=null;acct=null;dname="";$("who-in").value="";showLogin();if(wasLocal)offlineView()};
 function speak(t){try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.rate=.9;u.pitch=1.2;speechSynthesis.speak(u)}catch(e){}}
